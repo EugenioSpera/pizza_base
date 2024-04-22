@@ -91,6 +91,152 @@ document.querySelectorAll('.pizzaInfo--cancelButton, .pizzaInfo--cancelMobileBut
     item.addEventListener('click', closeModal);
 });
 
+closeModal();
+
+
+
+document.querySelector('.pizzaInfo--qtmais').addEventListener('click', () => {
+    modalQtd++;
+ 
+    document.querySelector('.pizzaInfo--qt').innerHTML = modalQtd;
+ 
+});
+ 
 document.querySelector('.pizzaInfo--qtmenos').addEventListener('click', () => {
+    if (modalQtd  > 1) {
+        modalQtd--;
+       
+    }
+        document.querySelector('.pizzaInfo--qt').innerHTML = modalQtd;
+ 
+})   
+
+//-----------------------------------------------------------Tamanhos de pizzas---------------------------------------------------------------------------------------------
+
+        //sempre que em um sistemas tivermos que selecionar uma opção diferente e uma opção anterior estiver selecionada, devemos primeiro tirar a seleção de todas as opções anteriores e só depois selecionar a nova opção que o usuário selecionou.
+document.querySelectorAll('.pizzaInfo--size').forEach((item, sizeIndex) => {
+
+    item.addEventListener('click', (event) => {
+
+        //removendo a classeselecionada dos tamanhos da pizza.
+        document.querySelector('.pizzaInfo--size.selected').classList.remove('selected');
+        //adicionado a classe selected ao tamanho que o usuario esta clicando
+        item.classList.add('selected');
+
+    })
+})
+
+//-------------------------------Botão adicionar ao carrinho-----------------
+
+document.querySelector('.pizzaInfo--addButton').addEventListener('click', () => {
+
+    let size = parseInt(document.querySelector('.pizzaInfo--size.selected').getAttribute('data-Key'));
+
+    let identifier = pizzaJson[modalKey].id + '@'
++ size;
+
+let Key = cart.findIndex((item) => {
+
+    return item.identifier == identifier
+})
+
+
+if (Key > -1) {
+cart[Key].qt += modalQtd;
+
+}else {
+
+cart.push({
+    identifier,
+    id: pizzaJson[modalKey].id,
+    size,
+    qt: modalQtd
+})
+
+}
+
+closeModal()
+updateCart()
 
 });
+
+
+//--------------------Atualização do carrinho Mobile----------------------
+
+//Exibindo o carrinho caso tenham pizzas adicionadas
+
+document.querySelector('.menu-closer').addEventListener('click', () => {
+
+    if(cart.length > 0){    
+        
+        document.querySelector('aside').style.left = '0';
+    }
+})
+
+//escondendo o carrinho ao usuario clicar em fechar o carrinho
+
+document.querySelector('.menu-closer').addEventListener('click', () => {
+
+    document.querySelector('aside').style.left = '100vw';
+})
+
+function updateCart() {
+    //Atualizando a quantidade de pizzas no carrinho na versao mobile
+    document.querySelector('.menu-openner span').innerHTML = cart.length
+
+    //verificando se o carrinho possuiu pizzas adicionadas dentro dele
+    if (cart.length > 0) {
+        //adicionando a classe show a tag aside, isso fará com que o carrinho seja exibido na tela
+        document.querySelector('aside').classList.add('show');
+
+        //limpando o HTML antes de exibir as pizzas novamente
+
+        document.querySelector('.cart').innerHTML = '';
+
+        let subTotal = 0;
+        let desconto = 0;
+        let total = 0;
+
+        for (let i in cart) {
+             //iremos procurar dentro no pizzaJson itens que tenham o mesmo id da pizza a qual o usuário clicou, a função find irá buscar no array e em seguida jogar dentro do parÂmetro item. Nesse caso usamos a função find ao invés de findIndex pois queremos retornar todas as informações dos itens do json e não somente o índice dele(posição no array)
+            let pizzaItem = pizzaJson.find((item) => {
+            //procurando nos itens do array que serão adicionados no parÂmetro(variável) item e iremos procurar no id deste item  por um item que seja igual ao item que estiver no carrinho, assim poderemos exibir as informações desse item.
+
+                return item.id == cart[i].id;
+            });
+
+            //atualizando o sub total
+            subTotal += pizzaItem.price * cart[i].qt;
+
+            //clonando o elemento pizza-item onde serão exibidos os dados da pizza no carrinho
+            let cartItem = document.querySelector('.models .cart--item').cloneNode(true);
+
+             //o switch case irá percorrer o array de tamanho de pizzas adicionando uma letra correspondente ao tamanho da pizza, se não fizessemos isso não teriamos como o usuário saber o tamanho da pizza que ele está comprando.
+             let pizzaSizeName;
+
+             switch (cart[i].size) {
+                case 0:
+                    pizzaSizeName = 'P'
+                    break;
+                case 1:
+                    pizzaSizeName = 'M'
+                    break;
+                case 2:
+                    pizzaSizeName ='G'
+                    break;    
+
+             }
+
+             //concatenando o nome da pizza com o tamanho da mesa
+             let pizzaName = `${pizzaItem.name} (${pizzaSizeName})`
+
+             cartItem.querySelector('img').src = pizzaItem.img;
+             cartItem.querySelector('.cart--item-nome').innerHTML = pizzaName;
+             cartItem.querySelector('.cart--item--qt').innerHTML = cart[i].qt;
+
+
+        }//fimFor
+
+
+    }
+}
